@@ -1,0 +1,63 @@
+#! /usr/bin/env node
+
+var path    = require('path');
+
+var _           = require('lodash');
+var commander   = require('commander');
+
+var pjson       = require('../package.json');
+var tasks       = require('../lib/tasks');
+
+function getConfig(options) {
+
+    var defaultConfig = {
+        outputDir: './output',
+        sourceDir: './source',
+        rules: [
+            { test: /\.json$/,      processor: 'jsonrefs' },
+            { test: /\.xml$/,       processor: 'lodash'   },
+            { test: /\.config$/,    processor: 'lodash'   },
+            { test: /.*$/,          processor: 'error'    }
+        ]
+    }
+
+    try{
+        return _.merge({}, defaultConfig, require(commander.configFile), options);
+    }catch(e){
+        throw new Error("Couldn't load config file " + commander.configFile + ". " + e);
+    }
+
+}
+
+
+var defaultConfigFile = path.join(process.cwd(), pjson.name + 'file');
+
+commander
+  .version(pjson.version)
+  .option('-c, --config-file [configFile]', '', defaultConfigFile)
+  .option('-s, --source-dir [sourceDir]')
+
+commander
+  .command('build <environment>')
+  .description('Create files for <environment>')
+  .option('-o, --output-dir [outputDir]')
+  .action(function (envName, cmd) {
+    tasks.build(envName, getConfig(cmd.opts()));    
+  });
+
+commander
+  .command('build-all')
+  .description('Create files for every environment')
+  .option('-o, --output-dir [outputDir]')
+  .action(function (cmd) {
+    tasks.buildAll(getConfig(cmd.opts()));    
+  });
+
+commander
+  .command('env <environment>')
+  .description('Show <environment> environment configuration')
+  .action(function (envName, cmd) {
+    tasks.env(envName, getConfig(cmd.opts()));
+  });
+
+commander.parse(process.argv);
