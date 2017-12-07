@@ -41,6 +41,7 @@ commander
   .command('build <environment>')
   .description('Create files for <environment>')
   .option('-o, --output-dir [outputDir]')
+  .allowUnknownOption()
   .action(function (envName, cmd) {
     tasks.build(envName, getConfig(cmd.opts()));    
   });
@@ -49,6 +50,7 @@ commander
   .command('build-all')
   .description('Create files for every environment')
   .option('-o, --output-dir [outputDir]')
+  .allowUnknownOption()
   .action(function (cmd) {
     tasks.buildAll(getConfig(cmd.opts()));    
   });
